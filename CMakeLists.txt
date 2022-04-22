@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  tf2
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -121,8 +123,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  /usr/include/eigen3
 )
 
 ## Declare a C++ library
@@ -139,6 +142,12 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/maloc_node.cpp)
+
+add_executable(static_transform_node app/static_transform_node.cpp)
+target_link_libraries(static_transform_node
+    ${catkin_LIBRARIES}
+    yaml-cpp
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

@@ -1,0 +1,6 @@
+<launch>
+    <arg name="config_path" default = "$(find maloc)/config/static_transform.yaml" />
+    <node name="static_transform_node" pkg="maloc" type="static_transform_node" output="screen">
+        <param name="config_file" type="string" value="/stereo/left/image_raw" />
+    </node>
+</launch>

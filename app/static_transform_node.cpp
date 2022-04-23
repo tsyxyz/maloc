@@ -2,12 +2,18 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <yaml-cpp/yaml.h>
+#include <glog/logging.h>
+#include <boost/filesystem.hpp>
 #include <vector>
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "static_transform");
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh;
+
+
+
+
   std::string config;
   if (!nh.getParam("config_file", config)) {
     std::cerr << "getParam config_file failed";

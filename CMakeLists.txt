@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(maloc)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -21,7 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -147,6 +148,8 @@ add_executable(static_transform_node app/static_transform_node.cpp)
 target_link_libraries(static_transform_node
     ${catkin_LIBRARIES}
     yaml-cpp
+    glog
+    ${Boost_LIBRARIES}
 )
 
 ## Rename C++ executable without prefix

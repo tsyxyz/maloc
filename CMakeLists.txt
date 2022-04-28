@@ -8,16 +8,16 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  irp_sen_msgs
-  message_generation
-  message_runtime
-  roscpp
-  rospy
-  std_msgs
-  tf
-  tf2
-  tf2_ros
+    geometry_msgs
+    irp_sen_msgs
+    message_generation
+    message_runtime
+    roscpp
+    rospy
+    std_msgs
+    tf
+    tf2
+    tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -124,15 +124,20 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  /usr/include/eigen3
+    include
+    ${catkin_INCLUDE_DIRS}
+    /usr/include/eigen3
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/maloc.cpp
-# )
+add_library(maloc_common
+    src/common/calibration.cpp
+    src/common/util.cpp
+)
+target_link_libraries(maloc_common
+    yaml-cpp
+    glog
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -150,6 +155,7 @@ target_link_libraries(static_transform_node
     yaml-cpp
     glog
     ${Boost_LIBRARIES}
+    maloc_common
 )
 
 ## Rename C++ executable without prefix
@@ -214,10 +220,14 @@ target_link_libraries(static_transform_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_maloc.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(maloc_test
+    test/test_main.cpp
+    test/test_common.cpp
+)
+target_link_libraries(maloc_test
+    maloc_common
+    gtest
+)
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

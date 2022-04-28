@@ -1,34 +1,30 @@
-# glog
-stderr_log_level: 0 # 0: INFO, 1: WARNING, 2: ERROR, 3: FATAL
-min_log_level: 0    # 0: INFO, 1: WARNING, 2: ERROR, 3: FATAL
-
 extrinsic:
   - from: "vehicle"
     to: "left_velodyne"
-    rotation: [1.42947, 44.5011, 136.385] # roll, pitch, yaw in degree
+    euler_angles: [1.42947, 44.5011, 136.385] # roll, pitch, yaw in degree
     translation: [-0.334623, 0.431973, 1.94043] # tx, ty, tz
 
   - from: "vehicle"
     to: "right_velodyne"
-    rotation: [178.899, 135.416, 43.7457]
+    euler_angles: [178.899, 135.416, 43.7457]
     translation: [-0.333596, -0.373928, 1.94377]
 
   - from: "vehicle"
     to: "imu"
-    rotation: [0, 0, 0]
+    euler_angles: [0, 0, 0]
     translation: [-0.07, 0, 1.7]
 
   - from: "vehicle"
     to: "gps"
-    rotation: [0, 0, 0]
+    euler_angles: [0, 0, 0]
     translation: [-0.32, 0, 1.7]
 
   - from: "vehicle"
     to: "vrs"
-    rotation: [0, 0, 0]
+    euler_angles: [0, 0, 0]
     translation: [0, 0, 1.93]
 
   - from: "vehicle"
     to: "stereo"
-    rotation: [-90.878, 0.0132, -90.3899]
+    euler_angles: [-90.878, 0.0132, -90.3899]
     translation: [1.64239, 0.247401, 1.58411]

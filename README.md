@@ -28,6 +28,12 @@ $ catkin_make
 ## Usage
 
 
+## Run tests
+
+```shell
+$ catkin_make run_tests
+```
+
 ## Roadmap
 
 - [ ] Build a point cloud map with multi sensors

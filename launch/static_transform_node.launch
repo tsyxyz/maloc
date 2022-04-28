@@ -1,6 +1,10 @@
 <launch>
-    <arg name="config_path" default = "$(find maloc)/config/static_transform.yaml" />
+    <param name="stderr_log_level" type="int" value="0" />
+    <param name="min_log_level" type="int" value="0" />
+    <param name="log_dir" type="str" value="./log" />
+
+    <param name="calibration_file" value="$(find maloc)/config/calibration.yaml"/>
+
     <node name="static_transform_node" pkg="maloc" type="static_transform_node" output="screen">
-        <param name="config_file" type="string" value="/stereo/left/image_raw" />
     </node>
 </launch>

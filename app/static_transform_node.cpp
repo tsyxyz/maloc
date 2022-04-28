@@ -1,89 +1,74 @@
-#include <ros/ros.h>
-#include <tf2_ros/static_transform_broadcaster.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <yaml-cpp/yaml.h>
-#include <glog/logging.h>
 #include <boost/filesystem.hpp>
+#include <glog/logging.h>
+#include <ros/ros.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/static_transform_broadcaster.h>
 #include <vector>
+#include <yaml-cpp/yaml.h>
 
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "static_transform");
-  ros::NodeHandle nh;
+#include "maloc/common/calibration.h"
+#include "maloc/common/util.h"
 
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "static_transform");
+    ros::NodeHandle nh;
 
-
-
-  std::string config;
-  if (!nh.getParam("config_file", config)) {
-    std::cerr << "getParam config_file failed";
-    return -1;
-  }
-  std::cout << "====: " << config << std::endl;
-
-  YAML::Node node;
-  try {
-    node = YAML::LoadFile(config);
-  } catch (const YAML::Exception &e) {
-    std::cerr << "load yaml " << config << " failed, throw: " << e.what();
-    return -1;
-  }
-
-  std::vector<std::shared_ptr<tf2_ros::StaticTransformBroadcaster>> all_broads;
-  std::vector<geometry_msgs::TransformStamped> all_tfs;
-
-  try {
-    for (YAML::const_iterator it = node["extrinsic"].begin(); it != node["extrinsic"].end(); ++it) {
-      std::string from, to;
-      std::vector<double> rotation, translation;
-      for (YAML::const_iterator itt = it->begin(); itt != it->end(); ++itt) {
-        std::string key = itt->first.as<std::string>();
-        std::cerr << "key: " << key << std::endl;
-        if (key == "from") {
-          from = itt->second.as<std::string>();
-        } else if (key == "to") {
-          to = itt->second.as<std::string>();
-        } else if (key == "rotation") {
-          rotation = itt->second.as<std::vector<double>>();
-        } else if (key == "translation") {
-          translation = itt->second.as<std::vector<double>>();
-        }
-      }
-
-      if (from.empty() || to.empty() || rotation.size() != 3 || translation.size() != 3) {
-        std::cerr << "invalid extrinsic" << std::endl;
-        return -1;
-      }
-
-      auto tb = std::make_shared<tf2_ros::StaticTransformBroadcaster>();
-      all_broads.push_back(tb);
-      geometry_msgs::TransformStamped tf;
-      tf.header.stamp = ros::Time::now();
-      tf.header.frame_id = from;
-      tf.child_frame_id = to;
-      tf.transform.translation.x = translation[0];
-      tf.transform.translation.y = translation[1];
-      tf.transform.translation.z = translation[2];
-      tf2::Quaternion q;
-      q.setRPY(rotation[0] * M_PI / 180,
-               rotation[1] * M_PI / 180,
-               rotation[2] * M_PI / 180);
-      tf.transform.rotation.x = q.x();
-      tf.transform.rotation.y = q.y();
-      tf.transform.rotation.z = q.z();
-      tf.transform.rotation.w = q.w();
-      all_tfs.push_back(tf);
+    std::string log_dir = "./log";
+    if (!nh.getParam("log_dir", log_dir)) {
+        LOG(WARNING) << "getParam log_dir failed, using default " << log_dir;
     }
-  } catch (const YAML::Exception& e) {
-    std::cerr << "parse yaml config failed, throw " << e.what();
-    return -1;
-  }
+    int stderr_log_level = 0;
+    if (!nh.getParam("stderr_log_level", stderr_log_level)) {
+        LOG(WARNING) << "getParam stderr_log_level failed, using default " << stderr_log_level;
+    }
+    int min_log_level = 0;
+    if (!nh.getParam("min_log_level", min_log_level)) {
+        LOG(WARNING) << "getParam min_log_level failed, using default " << min_log_level;
+    }
 
-  for (size_t i = 0; i < all_tfs.size(); ++i) {
-    all_broads[i]->sendTransform(all_tfs[i]);
-  }
+    std::string calibration;
+    if (!nh.getParam("calibration_file", calibration)) {
+        LOG(ERROR) << "getParam calibration_file failed";
+        return -1;
+    }
 
-  ros::spin();
+    maloc::InitGlog(argv[0], log_dir.c_str(), stderr_log_level, min_log_level);
 
-  return 0;
+    if (maloc::CalibInit(calibration) < 0) {
+        LOG(ERROR) << "calibration init failed";
+        return -1;
+    }
+
+    std::vector<std::shared_ptr<tf2_ros::StaticTransformBroadcaster>> all_broads;
+    std::vector<geometry_msgs::TransformStamped> all_tfs;
+
+    std::vector<maloc::TransformInfo> all_tfi;
+    maloc::CalibGetAllTransform(all_tfi);
+    for (auto tfi : all_tfi) {
+        geometry_msgs::TransformStamped tf;
+        tf.header.stamp = ros::Time::now();
+        tf.header.frame_id = tfi.from;
+        tf.child_frame_id = tfi.to;
+        tf.transform.translation.x = tfi.transform.translation[0];
+        tf.transform.translation.y = tfi.transform.translation[1];
+        tf.transform.translation.z = tfi.transform.translation[2];
+        Eigen::Quaterniond q(tfi.transform.rotation);
+        tf.transform.rotation.x = q.x();
+        tf.transform.rotation.y = q.y();
+        tf.transform.rotation.z = q.z();
+        tf.transform.rotation.w = q.w();
+
+        all_tfs.push_back(tf);
+
+        auto tb = std::make_shared<tf2_ros::StaticTransformBroadcaster>();
+        all_broads.push_back(tb);
+    }
+
+    for (size_t i = 0; i < all_tfs.size(); ++i) {
+        all_broads[i]->sendTransform(all_tfs[i]);
+    }
+
+    ros::spin();
+
+    return 0;
 }
